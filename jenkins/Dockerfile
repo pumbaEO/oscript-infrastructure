@@ -16,17 +16,24 @@ RUN apt-get clean && apt-get update && \
 # slave должен иметь docker
 RUN curl -sSL https://get.docker.com/ | sh \
 	&& usermod -a -G docker jenkins
-
-#locales
-RUN apt-get -y install locales \
-	&& locale-gen ru_RU \
-	&& locale-gen ru_RU.UTF-8 \
-	&& update-locale LANG=ru_RU.UTF-8
 ENV LANG ru_RU.UTF-8
+ENV LANGUAGE ru_RU.UTF-8
+ENV LC_MESSAGES "ru_RU.UTF-8"
 
-# Дополнительные пакеты поставим в отдельный слой, чтобы
-# зафиксировать долгую установку mono и не выполнять ее каждый раз при сборке.
-RUN apt-get -y install rsync sudo
+RUN apt-get update  && apt-get install -y locales \
+	language-pack-en \
+	language-pack-ru \
+	language-pack-ru-base \
+	rsync \
+	sudo \
+	&& apt-get autoclean -y \
+	&& rm -rf /var/lib/apt/lists/*
+	
+#locales
+RUN locale-gen ru_RU \
+	&& locale-gen ru_RU.UTF-8 \
+	&& locale-gen en_US \
+	&& update-locale LANG=ru_RU.UTF-8 LANGUAGE=ru_RU
 
 RUN mkdir -p /etc/sudoers.d && \
 	echo 'jenkins ALL=(root) NOPASSWD: /usr/bin/rsync' >> /etc/sudoers.d/10-jenkins
